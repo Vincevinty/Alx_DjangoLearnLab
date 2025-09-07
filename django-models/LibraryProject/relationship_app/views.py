@@ -1,6 +1,27 @@
 from django.shortcuts import render, redirect
+from .models import Book
+from .models import Library
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.views.generic.detail import DetailView
+
+def list_books(request):
+    books = Book.objects.all()
+    return render(request, 'relationship_app/book_list.html', {'books': books})
+
+def home_view(request):
+    return render(request, 'relationship_app/home.html')
+
+class LibraryDetailView(DetailView):
+    model = Library
+    template_name = 'relationship_app/library_detail.html'
+    context_object_name = 'library'
+
+
+
+
+
+
 
 def login_view(request):
     if request.method == 'POST':
