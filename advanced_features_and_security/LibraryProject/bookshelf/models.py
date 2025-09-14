@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
 class Book(models.Model):
@@ -33,6 +33,3 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
-
-    
-
