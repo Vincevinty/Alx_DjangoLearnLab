@@ -1,8 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
+from bookshelf.models import Book
 
 user = get_user_model()
+
+class Review(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    content = models.TextField()
+
 
 
 class Author(models.Model):
