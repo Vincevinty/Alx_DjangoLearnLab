@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'bookshelf',
     'relationship_app',
     'accounts',
+    
 ]
 AUTH_USER_MODEL = 'accounts.CustomUser'
 MEDIA_URL = '/media/'
