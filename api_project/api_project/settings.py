@@ -39,13 +39,20 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'api',
-    'rest_framework.authtoken',
+    'rest_framework.authtoken', # Enables token-based authentication
+
 ]
+
+# Set default authentication and permission classes
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.TokenAuthentication', # Requires token in request header
     ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated', # Restricts access to authenticated users by default
+    ],
+
 }
 
 MIDDLEWARE = [
