@@ -1,3 +1,5 @@
 from django.contrib import admin
+from .models import Author, Book
 
-# Register your models here.
+admin.site.register(Author) # Registers the Author model with the admin site
+admin.site.register(Book)   # Registers the Book model with the admin site
