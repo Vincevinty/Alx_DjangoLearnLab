@@ -1,16 +1,15 @@
 from django.db import models
 
-class Author(models.Model):
-    name = models.CharField(max_length = 200) # Stores author's name
+class Author(models.Model): # Defines the Author model
+    name = models.CharField(max_length = 200) # Stores the author's name
 
-    def __str__(self): 
-        return self.name # Returns the author's name when the object is printed or displayed in the admin panel
+    def __str__(self): # String representation of the Author model
+        return self.name # Returns the author's name
+    
+class Book(models.Model): # Defines the Book model
+    title = models.CharField(max_length = 200) # Stores the book's title
+    publication_year = models.IntegerField() # Stores the publication year of the book
+    author = models.ForeignKey(Author, on_delete = models.CASCADE) # Links to the Author model
 
-# Each book is linked to one Author using a ForeignKey, creating a one-to-many relationship.    
-class Book(models.Model): 
-    title = models.CharField(max_length = 200) # Stores book title
-    publication_year = models.IntegerField() # Stores publication year
-    author = models.ForeignKey(Author, related_name='books', on_delete=models.CASCADE) # Links to Author model
-
-    def __str__(self): 
-        return self.title  # Returns the book's title when the object is printed or displayed in the admin panel
+    def __str__(self): # String representation of the Book model
+        return self.title # Returns the book's title
