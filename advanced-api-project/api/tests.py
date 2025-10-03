@@ -1,10 +1,6 @@
-# api/tests.py - Corrected setup for Book and Author instances
-
 from rest_framework.test import APITestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-
-# Assuming your models are located here:
 from .models import Book, Author 
 
 User = get_user_model()
@@ -30,9 +26,8 @@ class BookAPITestCase(APITestCase):
         # 3. Use the Author instance in the book data for creation
         self.book_data = {
             'title': 'Dracula',
-            'publication_date': '1897-05-26',
-            'isbn': '978-0199537151',
-            # CRITICAL FIX: Pass the Author instance (self.author), not a string
+            # CRITICAL FIX for TypeError: Removed 'publication_date' and 'isbn' 
+            # as they are not recognized fields on the Book model when calling create().
             'author': self.author, 
         }
 
@@ -44,15 +39,15 @@ class BookAPITestCase(APITestCase):
         self.detail_url = reverse('book-detail', kwargs={'pk': self.book.pk})
         
         # Data structure for authenticated POST request (must use author ID for serializer)
+        # We keep publication_date and isbn here, as they are likely needed by the API serializer.
         self.new_book_payload = {
             'title': 'Frankenstein',
-            'publication_date': '1818-01-01',
+            'publication_year': '1818-01-01',
             'isbn': '978-0141439471',
             # For API POST/PUT requests, the serializer expects the Author's primary key (ID)
             'author': self.author.id, 
         }
-        
-
+       
     def test_list_books(self):
         """Test retrieving the list of books."""
         # Note: Unauthenticated users should usually be allowed to view lists
@@ -80,6 +75,7 @@ class BookAPITestCase(APITestCase):
         """Test updating an existing book."""
         update_data = {
             'title': 'Dracula Updated',
+            # We keep publication_date and isbn here, as they are likely needed by the API serializer.
             'publication_date': '1897-05-26',
             'isbn': '978-0199537151',
             'author': self.author.id,
@@ -99,10 +95,9 @@ class BookAPITestCase(APITestCase):
 
     def test_filter_books_by_author(self):
         """Test filtering books by author ID."""
+        # Removed publication_date and isbn from this creation call
         Book.objects.create(
             title='Pride and Prejudice', 
-            publication_date='1813-01-28', 
-            isbn='1234567890', 
             author=self.other_author # Use the other author instance
         )
         
@@ -123,10 +118,9 @@ class BookAPITestCase(APITestCase):
 
     def test_order_books_by_title(self):
         """Test ordering books by title (e.g., in descending order)."""
+        # Removed publication_date and isbn from this creation call
         Book.objects.create(
             title='Zzz', 
-            publication_date='2000-01-01', 
-            isbn='0000', 
             author=self.author
         )
         # Note: This test assumes your ViewSet has ordering enabled
