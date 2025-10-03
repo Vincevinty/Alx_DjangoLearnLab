@@ -13,13 +13,13 @@ class BookSerializer(serializers.ModelSerializer): # Serializer for the Book mod
             raise serializers.ValidationError("Publication year cannot be in the future.") # Raises validation error
         return value # Returns the validated value
     
-class AuthorSerializer(serializers.ModelSerializer): # Serializer for the Author model
-    books= BookSerializer(many = True, read_only = True) # Nested serializer for related books
+class AuthorSerializer(serializers.ModelSerializer):  # Serializer for the Author model
+    books = BookSerializer(many=True, read_only=True)  # Nested serializer for related books
 
-    class Meta: # Meta class to define model and fields
-        model = Author # Specifies the model to be serialized
-        fields = ['name', 'books'] # Specifies the fields to be included in the serialization
-
+    class Meta:  # Meta class to define model and fields
+        model = Author  # Specifies the model to be serialized
+        fields = ['name', 'books']  # Specifies the fields to be included in the serialization
+        
     def validate_name(self, value): # Custom validation for name field
         if not value.strip(): # Checks if the name is empty or only whitespace
             raise serializers.ValidationError("Author name cannot be empty.") # Raises validation error
