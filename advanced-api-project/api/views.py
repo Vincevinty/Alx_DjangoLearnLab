@@ -1,14 +1,15 @@
 from django.shortcuts import render
 from rest_framework import generics, permissions
 from .serializers import BookSerializer
-from .models import Book    
+from .models import Book
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated    
 
 class BookListView(generics.ListApiView): # View for listing all books
     queryset = Book.objects.all() # Queryset to retrieve all Book instances
     serializer_class = BookSerializer  # Serializer class to convert Book instances to JSON
     permission_classes = [permissions.AllowAny] # Allow any user (authenticated or not) to access this view
 
-    
+
 
 
 class BookDetailView(generics.RtrieveApiView): # View for retrieving a single book by its ID
