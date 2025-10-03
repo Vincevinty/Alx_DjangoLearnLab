@@ -4,7 +4,7 @@ from .views import (
     BookDetailView,
     BookCreateView, 
     BookUpdateView,
-    BookDeleteView
+    BookDeleteView,
 )
 
 urlspatterns = [
