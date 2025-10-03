@@ -8,7 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import rest_framework as filters
 
 
-class BookListView(generics.ListApiView): # View for listing all books
+class BookListView(generics.ListAPIView): # View for listing all books
     queryset = Book.objects.all() # Queryset to retrieve all Book instances
     serializer_class = BookSerializer  # Serializer class to convert Book instances to JSON
     permission_classes = [permissions.AllowAny] # Allow any user (authenticated or not) to access this view
@@ -21,14 +21,14 @@ class BookListView(generics.ListApiView): # View for listing all books
     search_fields = ['title', 'author']  # Enable search on title and author's name
     ordering_fields = ['title', 'publication_year'] # Allow ordering by title and publication year
     ordering = ['title']  # Default ordering by title
-class BookDetailView(generics.RtrieveApiView): # View for retrieving a single book by its ID
+class BookDetailView(generics.RetrieveAPIView): # View for retrieving a single book by its ID
     queryset = Book.objects.all() # Queryset to retrieve all Book instances
     serializer_class = BookSerializer # Serializer class to convert Book instances to JSON
     permission_classes = [permissions.AllowAny]  # Allow any user (authenticated or not) to access this view
 
 
 
-class BookCreateView(generics.CreateApiView): # View for creating a new book
+class BookCreateView(generics.CreateAPIView): # View for creating a new book
     queryset = Book.objects.all() # Queryset to retrieve all Book instances
     serializer_class = BookSerializer # Serializer class to convert Book instances to JSON
     permission_classes = [permissions.IsAuthenticated]  # Only logged-in users can create
@@ -37,7 +37,7 @@ class BookCreateView(generics.CreateApiView): # View for creating a new book
         # Example: attach the current user as the creator if your model supports it
         serializer.save() # Save the new book instance
 
-class BookUpdateView(generics.UpdateApiView): # View for updating an existing book
+class BookUpdateView(generics.UpdateAPIView): # View for updating an existing book
     queryset = Book.objects.all() # Queryset to retrieve all Book instances
     serializer_class = BookSerializer # Serializer class to convert Book instances to JSON
     permission_classes = [permissions.IsAuthenticated]  # Only logged-in users can update
@@ -46,7 +46,7 @@ class BookUpdateView(generics.UpdateApiView): # View for updating an existing bo
         # You can add custom logic here, like logging or conditional updates
         serializer.save() # Save the updated book instance
 
-class BookDeleteView(generics.DestroyApiView): # View for deleting a book
+class BookDeleteView(generics.DestroyAPIView): # View for deleting a book
     queryset = Book.objects.all() # Queryset to retrieve all Book instances
     serializer_class = BookSerializer # Serializer class to convert Book instances to JSON
     permission_classes = [permissions.IsAuthenticated]  # Only logged-in users can delete
