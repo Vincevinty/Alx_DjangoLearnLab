@@ -14,7 +14,7 @@ class BookSerializer(serializers.ModelSerializer): # Serializer for the Book mod
         return value # Returns the validated value
     
 class AuthorSerializer(serializers.ModelSerializer): # Serializer for the Author model
-    books = BookSerializer(many = True, read_only = True) # Nested serializer for related books
+    books= BookSerializer(many = True, read_only = True) # Nested serializer for related books
 
     class Meta: # Meta class to define model and fields
         model = Author # Specifies the model to be serialized
