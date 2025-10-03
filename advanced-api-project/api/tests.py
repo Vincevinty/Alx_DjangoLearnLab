@@ -62,19 +62,16 @@ class BookAPITestCase(APITestCase): # Test case for Book API endpoints
         titles = [book['title'] for book in response.data] # Extract titles from response
         self.assertEqual(titles, sorted(titles)) # Check if titles are in ascending order
 
-class BookAPITestCase(APITestCase): # Test case for Book API endpoints
+class TestBookAPI(APITestCase): # Test case for Book API endpoints
     def setUp(self): # Setup method to initialize test data
         self.user = User.objects.create_user(username='testuser', password='testpass') # Create a test user
         self.client = APIClient() # Initialize the APIClient
 
-        # Create an Author instance
-        self.author = Author.objects.create(name='Bram Stoker') 
-
-        # Use the Author instance, not a string
+        self.author = Author.objects.create(name='Bram Stoker')
         self.book_data = {
             'title': 'Dracula',
             'author': self.author,
             'publication_year': 1897
-        } 
+    }
 
         self.book = Book.objects.create(**self.book_data) # Creating a book instance for testing
