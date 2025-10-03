@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path
 from .views import (
     BookListView,
     BookDetailView,
@@ -12,5 +12,7 @@ urlpatterns = [
     path('books/<int:pk>/', BookDetailView.as_view(), name='book-detail'), # Added URL pattern for book details
     path('books/create/', BookCreateView.as_view(), name='book-create'), # Added URL pattern for creating a book
     path('books/<int:pk>/update/', BookUpdateView.as_view(), name='book-update'), # Added URL pattern for updating a book
+    path('books/update/', BookUpdateView.as_view()), # Added URL pattern for updating a book
     path('books/<int:pk>/delete/', BookDeleteView.as_view(), name='book-delete'),  # Added URL pattern for deleting a book
+    path('books/delete/', BookDeleteView.as_view()), # Added URL pattern for deleting a book
 ]
