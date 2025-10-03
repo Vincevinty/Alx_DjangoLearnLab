@@ -8,13 +8,8 @@ User = get_user_model()
 class BookAPITestCase(APITestCase):
     """
     Test suite for the Book API endpoints.
-    
-    The original error: 
-    'ValueError: Cannot assign "'Bram Stoker'": "Book.author" must be a "Author" instance.'
-    is fixed by creating an Author instance first and passing that object to the Book creation.
     """
     def setUp(self):
-        # --- FIX STARTS HERE ---
         # 1. Create a User for authenticated tests
         self.user = User.objects.create_user(username='testuser', password='password')
         self.client.force_authenticate(user=self.user)
@@ -23,12 +18,12 @@ class BookAPITestCase(APITestCase):
         self.author = Author.objects.create(name='Bram Stoker') 
         self.other_author = Author.objects.create(name='Jane Austen')
 
-        # 3. Use the Author instance in the book data for creation
+        # 3. Use the Author instance and ADD the required 'publication_year' field
         self.book_data = {
             'title': 'Dracula',
-            # CRITICAL FIX for TypeError: Removed 'publication_date' and 'isbn' 
-            # as they are not recognized fields on the Book model when calling create().
             'author': self.author, 
+            # FIX: Added required field to satisfy NOT NULL constraint
+            'publication_year': 1897, 
         }
 
         # 4. Now creating the book instance works correctly
@@ -39,15 +34,19 @@ class BookAPITestCase(APITestCase):
         self.detail_url = reverse('book-detail', kwargs={'pk': self.book.pk})
         
         # Data structure for authenticated POST request (must use author ID for serializer)
-        # We keep publication_date and isbn here, as they are likely needed by the API serializer.
         self.new_book_payload = {
             'title': 'Frankenstein',
-            'publication_year': '1818-01-01',
+            # Note: Using the field names expected by your serializer for API calls
+            'publication_date': '1818-01-01', 
             'isbn': '978-0141439471',
-            # For API POST/PUT requests, the serializer expects the Author's primary key (ID)
+            'publication_year': 1818, # Added publication_year for consistency, though date might handle it
             'author': self.author.id, 
         }
-       
+
+    # ======================================================================
+    # Tests that were failing due to setUp error should now pass:
+    # ======================================================================
+
     def test_list_books(self):
         """Test retrieving the list of books."""
         # Note: Unauthenticated users should usually be allowed to view lists
@@ -75,9 +74,9 @@ class BookAPITestCase(APITestCase):
         """Test updating an existing book."""
         update_data = {
             'title': 'Dracula Updated',
-            # We keep publication_date and isbn here, as they are likely needed by the API serializer.
             'publication_date': '1897-05-26',
             'isbn': '978-0199537151',
+            'publication_year': 1897,
             'author': self.author.id,
         }
         response = self.client.put(self.detail_url, update_data, format='json')
@@ -95,10 +94,11 @@ class BookAPITestCase(APITestCase):
 
     def test_filter_books_by_author(self):
         """Test filtering books by author ID."""
-        # Removed publication_date and isbn from this creation call
+        # FIX: Added required publication_year field here as well
         Book.objects.create(
             title='Pride and Prejudice', 
-            author=self.other_author # Use the other author instance
+            author=self.other_author, # Use the other author instance
+            publication_year=1813
         )
         
         # Filter for 'Bram Stoker' (self.author.id)
@@ -118,11 +118,15 @@ class BookAPITestCase(APITestCase):
 
     def test_order_books_by_title(self):
         """Test ordering books by title (e.g., in descending order)."""
-        # Removed publication_date and isbn from this creation call
+        # FIX: Added required publication_year field here as well
         Book.objects.create(
             title='Zzz', 
-            author=self.author
+            author=self.author,
+            publication_year=2000
         )
         # Note: This test assumes your ViewSet has ordering enabled
         response = self.client.get(f'{self.list_url}?ordering=-title')
         self.assertEqual(response.status_code, 200)
+        # The book with title 'Zzz' should be first
+        self.assertEqual(response.data[0]['title'], 'Zzz')
+        self.assertEqual(response.data[1]['title'], 'Dracula')
