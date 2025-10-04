@@ -1,132 +1,166 @@
 from rest_framework.test import APITestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from .models import Book, Author 
+from .models import Book, Author
+from rest_framework import status
 
 User = get_user_model()
 
-class BookAPITestCase(APITestCase):
+class BookViewTests(APITestCase):
     """
-    Test suite for the Book API endpoints.
+    Test suite for the Book API endpoints (List, Detail, Create, Update, Delete)
+    with a focus on advanced querying and permissions.
     """
     def setUp(self):
-        # 1. Create a User for authenticated tests
-        self.user = User.objects.create_user(username='testuser', password='password')
-        self.client.force_authenticate(user=self.user)
-        
-        # 2. Create an Author instance FIRST
-        self.author = Author.objects.create(name='Bram Stoker') 
-        self.other_author = Author.objects.create(name='Jane Austen')
+        # --- Authentication Setup ---
+        self.user = User.objects.create_user(username='admin_user', password='password')
+        self.non_auth_client = self.client # Client without forced authentication
 
-        # 3. Use the Author instance and ADD the required 'publication_year' field
-        self.book_data = {
-            'title': 'Dracula',
-            'author': self.author, 
-            # FIX: Added required field to satisfy NOT NULL constraint
-            'publication_year': 1897, 
+        # --- Data Setup: Authors ---
+        self.author_stoker = Author.objects.create(name='Bram Stoker')
+        self.author_janeausten = Author.objects.create(name='Jane Austen')
+
+        # --- Data Setup: Books ---
+        self
+        self.book_a = Book.objects.create(
+            title='Dracula',
+            author=self.author_stoker,
+            publication_year=1897,
+            isbn='1234567890123'
+        )
+        self.book_b = Book.objects.create(
+            title='Pride and Prejudice',
+            author=self.author_janeausten,
+            publication_year=1813,
+            isbn='9876543210987'
+        )
+        self.book_c = Book.objects.create(
+            title='Northanger Abbey',
+            author=self.author_janeausten,
+            publication_year=1817,
+            isbn='1111111111111'
+        )
+
+        # --- URL Setup ---
+        # Assuming the following URL names correspond to your generic views:
+        self.list_create_url = reverse('book-list') # Maps to BookListView (GET) and BookCreateView (POST)
+        self.detail_url = reverse('book-detail', kwargs={'pk': self.book_a.pk}) # Maps to BookDetailView/UpdateView/DeleteView
+
+        # --- Payload for Creation/Update ---
+        self.valid_payload = {
+            'title': 'The Great Gatsby',
+            'publication_year': 1925,
+            # Pass the author ID for the ForeignKey field
+            'author': self.author_stoker.id,
+        }
+        self.invalid_payload = {
+            'title': 'Missing Author'
+            # Missing required 'publication_year' and 'author'
         }
 
-        # 4. Now creating the book instance works correctly
-        self.book = Book.objects.create(**self.book_data) # Creating a book instance for testing
-        
-        # Set up URLs for convenience
-        self.list_url = reverse('book-list')
-        self.detail_url = reverse('book-detail', kwargs={'pk': self.book.pk})
-        
-        # Data structure for authenticated POST request (must use author ID for serializer)
-        self.new_book_payload = {
-            'title': 'Frankenstein',
-            # Note: Using the field names expected by your serializer for API calls
-            'publication_date': '1818-01-01', 
-            'isbn': '978-0141439471',
-            'publication_year': 1818, # Added publication_year for consistency, though date might handle it
-            'author': self.author.id, 
-        }
 
     # ======================================================================
-    # Tests that were failing due to setUp error should now pass:
+    # 1. CRUD Operation Tests (Functionality & Permissions)
     # ======================================================================
 
-    def test_list_books(self):
-        """Test retrieving the list of books."""
-        # Note: Unauthenticated users should usually be allowed to view lists
-        self.client.force_authenticate(user=None)
-        response = self.client.get(self.list_url)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['title'], 'Dracula')
+    def test_list_books_succeeds_for_any_user(self):
+        """Test GET (List) /books/ is accessible by anyone."""
+        response = self.non_auth_client.get(self.list_create_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 3)
+
+    def test_retrieve_book_succeeds_for_any_user(self):
+        """Test GET (Detail) /books/<pk>/ is accessible by anyone."""
+        response = self.non_auth_client.get(self.detail_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['title'], 'Dracula')
 
     def test_create_book_authenticated(self):
-        """Test creating a book with an authenticated user."""
-        response = self.client.post(self.list_url, self.new_book_payload, format='json')
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(Book.objects.count(), 2)
-        self.assertEqual(response.data['title'], 'Frankenstein')
+        """Test POST (Create) /books/ requires authentication and succeeds."""
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.list_create_url, self.valid_payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Book.objects.count(), 4)
 
-    def test_create_book_unauthenticated(self):
-        """Test creating a book without authentication (should fail with 403)."""
-        self.client.force_authenticate(user=None)
-        response = self.client.post(self.list_url, self.new_book_payload, format='json')
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(Book.objects.count(), 1) # Should not have created a new book
+    def test_create_book_unauthenticated_fails(self):
+        """Test POST (Create) /books/ fails for unauthenticated users."""
+        response = self.non_auth_client.post(self.list_create_url, self.valid_payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Book.objects.count(), 3)
 
-    def test_update_book(self):
-        """Test updating an existing book."""
-        update_data = {
-            'title': 'Dracula Updated',
-            'publication_date': '1897-05-26',
-            'isbn': '978-0199537151',
-            'publication_year': 1897,
-            'author': self.author.id,
-        }
+    def test_update_book_authenticated(self):
+        """Test PUT (Update) /books/<pk>/ requires authentication and succeeds."""
+        self.client.force_authenticate(user=self.user)
+        update_data = self.valid_payload.copy()
+        update_data['title'] = 'Dracula: Revised Edition'
         response = self.client.put(self.detail_url, update_data, format='json')
-        self.assertEqual(response.status_code, 200)
-        self.book.refresh_from_db()
-        self.assertEqual(self.book.title, 'Dracula Updated')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.book_a.refresh_from_db()
+        self.assertEqual(self.book_a.title, 'Dracula: Revised Edition')
 
-    def test_delete_book(self):
-        """Test deleting a book."""
-        response = self.client.delete(self.detail_url)
-        self.assertEqual(response.status_code, 204)
-        self.assertEqual(Book.objects.count(), 0)
+    def test_delete_book_unauthenticated_fails(self):
+        """Test DELETE (Destroy) /books/<pk>/ fails for unauthenticated users."""
+        response = self.non_auth_client.delete(self.detail_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Book.objects.count(), 3)
 
-    # Example tests for filtering and ordering (assuming your ViewSet supports them)
+    # ======================================================================
+    # 2. Advanced Querying Tests (Filtering, Searching, Ordering)
+    # ======================================================================
 
-    def test_filter_books_by_author(self):
-        """Test filtering books by author ID."""
-        # FIX: Added required publication_year field here as well
-        Book.objects.create(
-            title='Pride and Prejudice', 
-            author=self.other_author, # Use the other author instance
-            publication_year=1813
-        )
+    def test_filter_by_publication_year(self):
+        """Test filtering by the 'publication_year' field."""
+        # GET /api/books/?publication_year=1813
+        response = self.client.get(f'{self.list_create_url}?publication_year=1813')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['title'], 'Pride and Prejudice')
+
+    def test_filter_by_author_id(self):
+        """Test filtering by the 'author' ForeignKey ID."""
+        # GET /api/books/?author=<Jane Austen ID>
+        response = self.client.get(f'{self.list_create_url}?author={self.author_janeausten.id}')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        # Check if both Jane Austen books are present (order isn't guaranteed here)
+        titles = {book['title'] for book in response.data}
+        self.assertIn('Pride and Prejudice', titles)
+        self.assertIn('Northanger Abbey', titles)
+
+    def test_search_by_title_keyword(self):
+        """Test searching by a keyword in the 'title' field."""
+        # GET /api/books/?search=Prejudice
+        response = self.client.get(f'{self.list_create_url}?search=Prejudice')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['title'], 'Pride and Prejudice')
+
+    def test_search_by_author_name_keyword(self):
+        """Test searching by a keyword in the related 'author__name' field."""
+        # GET /api/books/?search=Austen
+        response = self.client.get(f'{self.list_create_url}?search=Austen')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+
+    def test_ordering_by_title_descending(self):
+        """Test ordering the results by title descending (-title)."""
+        # Titles are: Dracula, Pride and Prejudice, Northanger Abbey
+        # Ordered descending should be: Pride and Prejudice, Northanger Abbey, Dracula
+        # Note: Python string ordering makes 'N' (Northanger) appear before 'P' (Pride), let's sort by year instead for clarity.
         
-        # Filter for 'Bram Stoker' (self.author.id)
-        response = self.client.get(f'{self.list_url}?author_id={self.author.id}')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['title'], 'Dracula')
+        # Order by title descending: Pride and Prejudice, Northanger Abbey, Dracula
+        response = self.client.get(f'{self.list_create_url}?ordering=-title')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]['title'], 'Pride and Prejudice')
+        self.assertEqual(response.data[1]['title'], 'Northanger Abbey')
+        self.assertEqual(response.data[2]['title'], 'Dracula')
 
-    def test_search_books(self):
-        """Test searching books by title or ISBN."""
-        # Note: This test assumes your ViewSet has a search field defined
-        # Example: search=Dracula
-        response = self.client.get(f'{self.list_url}?search=Drac')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['title'], 'Dracula')
-
-    def test_order_books_by_title(self):
-        """Test ordering books by title (e.g., in descending order)."""
-        # FIX: Added required publication_year field here as well
-        Book.objects.create(
-            title='Zzz', 
-            author=self.author,
-            publication_year=2000
-        )
-        # Note: This test assumes your ViewSet has ordering enabled
-        response = self.client.get(f'{self.list_url}?ordering=-title')
-        self.assertEqual(response.status_code, 200)
-        # The book with title 'Zzz' should be first
-        self.assertEqual(response.data[0]['title'], 'Zzz')
-        self.assertEqual(response.data[1]['title'], 'Dracula')
+    def test_ordering_by_publication_year_ascending(self):
+        """Test ordering the results by publication_year ascending."""
+        # Years are: 1897, 1813, 1817
+        # Ordered ascending: 1813, 1817, 1897
+        response = self.client.get(f'{self.list_create_url}?ordering=publication_year')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]['publication_year'], 1813) # Pride and Prejudice
+        self.assertEqual(response.data[1]['publication_year'], 1817) # Northanger Abbey
+        self.assertEqual(response.data[2]['publication_year'], 1897) # Dracula
