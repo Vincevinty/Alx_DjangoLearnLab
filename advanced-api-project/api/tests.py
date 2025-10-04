@@ -26,19 +26,16 @@ class BookViewTests(APITestCase):
             title='Dracula',
             author=self.author_stoker,
             publication_year=1897,
-            isbn='1234567890123'
         )
         self.book_b = Book.objects.create(
             title='Pride and Prejudice',
             author=self.author_janeausten,
             publication_year=1813,
-            isbn='9876543210987'
         )
         self.book_c = Book.objects.create(
             title='Northanger Abbey',
             author=self.author_janeausten,
             publication_year=1817,
-            isbn='1111111111111'
         )
 
         # --- URL Setup ---
@@ -146,7 +143,6 @@ class BookViewTests(APITestCase):
         """Test ordering the results by title descending (-title)."""
         # Titles are: Dracula, Pride and Prejudice, Northanger Abbey
         # Ordered descending should be: Pride and Prejudice, Northanger Abbey, Dracula
-        # Note: Python string ordering makes 'N' (Northanger) appear before 'P' (Pride), let's sort by year instead for clarity.
         
         # Order by title descending: Pride and Prejudice, Northanger Abbey, Dracula
         response = self.client.get(f'{self.list_create_url}?ordering=-title')
