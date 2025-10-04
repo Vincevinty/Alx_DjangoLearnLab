@@ -23,8 +23,8 @@ class BookViewTests(APITestCase):
         # Authenticated user (required for POST, PUT, DELETE)
         self.user = User.objects.create_user(username='authuser', password='password123')
         # Client that is NOT authenticated (for testing 403/permission failures)
-        # Using a new client instance ensures no residual authentication.
-        self.non_auth_client = APITestCase().client
+        # FIX: Use the existing self.client instance which is unauthenticated by default.
+        self.non_auth_client = self.client 
 
         # 3. Setup Authors
         self.author_janeausten = Author.objects.create(name='Jane Austen')
