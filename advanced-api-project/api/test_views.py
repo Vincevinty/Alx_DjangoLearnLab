@@ -23,7 +23,6 @@ class BookViewTests(APITestCase):
         # Authenticated user (required for POST, PUT, DELETE)
         self.user = User.objects.create_user(username='authuser', password='password123')
         # Client that is NOT authenticated (for testing 403/permission failures)
-        # FIX: Use the existing self.client instance which is unauthenticated by default.
         self.non_auth_client = self.client 
 
         # 3. Setup Authors
@@ -32,31 +31,28 @@ class BookViewTests(APITestCase):
 
         # 4. Setup Book Instances
         # Book 1: Oldest book, used for basic detail retrieval
+        # FIX: Removed 'isbn' and 'publication_date' arguments
         self.book_pride = Book.objects.create(
             title='Pride and Prejudice',
             publication_year=1813,
             author=self.author_janeausten,
-            isbn='9780141439518',
-            publication_date='1813-01-28'
         )
         # Book 2: Latest book, used for ordering/search tests
+        # FIX: Removed 'isbn' and 'publication_date' arguments
         self.book_fire = Book.objects.create(
             title='A Song of Ice and Fire: A Game of Thrones',
             publication_year=1996,
             author=self.author_georgemartin,
-            isbn='9780553103540',
-            publication_date='1996-08-01'
         )
         self.detail_url = reverse('book-detail', kwargs={'pk': self.book_pride.pk})
         
         # 5. Setup Payload for POST/PUT
+        # FIX: Removed 'isbn' and 'publication_date' fields
         self.valid_payload = {
             'title': 'Sense and Sensibility',
             'publication_year': 1811,
             # Ensure the author ID is passed correctly
             'author': self.author_janeausten.id, 
-            'isbn': '9780141439495',
-            'publication_date': '1811-10-30'
         }
 
 
@@ -153,14 +149,13 @@ class BookViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         # Check for the book written by Martin
-        self.assertIn('Game of Thrones', response.data[0]['title']) 
+        self.assertIn('A Song of Ice and Fire', response.data[0]['title']) 
 
     def test_ordering_by_title_descending(self):
         """Test ordering the results by title descending (-title)."""
         response = self.client.get(f'{self.list_create_url}?ordering=-title')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # 'Pride and Prejudice' (P) comes after 'A Song of Ice and Fire' (A)
-        # When descending, the order should be: Pride then A Song...
+        # 'Pride and Prejudice' (P) comes before 'A Song of Ice and Fire' (A) when descending
         self.assertEqual(response.data[0]['title'], 'Pride and Prejudice')
         self.assertIn('A Song of Ice and Fire', response.data[1]['title'])
 
