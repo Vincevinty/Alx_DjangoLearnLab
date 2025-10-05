@@ -1,5 +1,5 @@
 from django.db import models
-from datetime import DateField
+from django.db.models import DateField
 from django.contrib.auth.models import User
 
 class Post(models.Model):
