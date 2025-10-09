@@ -7,5 +7,4 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'), # User profile view
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'), # Custom login view
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'), # Redirect to login page after logout
-    path('', include('blog.urls')),  # Include blog app URLs
 ]
