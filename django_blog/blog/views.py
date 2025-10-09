@@ -22,6 +22,9 @@ def register(request): # view function to handle user registration
 @login_required # Ensure the user is logged in to access this view
 def profile(request): # view function to display user profile
     if request.method == 'POST': # Check if the request method is POST
+        new_email = request.Post.get('email') # Get the new email from the POST data
+    if new_email: # If a new email is provided
+        request.user.email = new_email # Update the user's email
         request.user.email = request.POST.get('email') # Update the user's email
         request.user.save() # Save the updated user information
     return render(request, 'profile.html', {'user': request.user}) # Render the profile template with the user context
