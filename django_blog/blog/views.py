@@ -1,30 +1,65 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.models import User
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from .forms import CustomUserCreationForm
 
+# --- Blog Content Views ---
 
-def register_user(request): # view function to register a new user
-    user = User(username='AwonkeVintwembi',) # create a new user instance
-    user.set_password('secure_password')  # hashes it
-    user.save() # save the user to the database
+def post_list(request):
+    """
+    Placeholder for the main blog list view.
+    This view handles the root path ('/').
+    """
+    context = {
+        'posts': [
+            {'title': 'Welcome to Django Blog', 'author': 'Awonke', 'date': '2025-10-10'},
+            {'title': 'Setting up Authentication', 'author': 'User', 'date': '2025-10-12'}
+        ],
+        'title': 'Blog Home'
+    }
+    return render(request, 'post_list.html', context)
 
-def register(request): # view function to handle user registration
-    if request.method == 'POST': # Check if the request method is POST
-        form = CustomUserCreationForm(request.POST) # Instantiate the form with POST data
-        if form.is_valid(): # Check if the form is valid
-            form.save() # Save the new user to the database
-            return redirect('login')  # Redirect to login page after successful registration
-    else: # If the request method is not POST
-        form = CustomUserCreationForm() # Instantiate an empty form
-    return render(request, 'register.html', {'form': form}) # Render the registration template with the form
+# --- Authentication Views ---
 
-@login_required # Ensure the user is logged in to access this view
-def profile(request): # view function to display user profile
-    if request.method == 'POST': # Check if the request method is POST
-        new_email = request.Post.get('email') # Get the new email from the POST data
-    if new_email: # If a new email is provided
-        request.user.email = new_email # Update the user's email
-        request.user.email = request.POST.get('email') # Update the user's email
-        request.user.save() # Save the updated user information
-    return render(request, 'profile.html', {'user': request.user}) # Render the profile template with the user context
+def register(request):
+    """
+    View function to handle user registration using the CustomUserCreationForm.
+    Redirects to the login page on successful registration.
+    """
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            # Save the new user, email uniqueness is checked in forms.py
+            user = form.save()
+            messages.success(request, f'Account created for {user.username}! Please log in.')
+            return redirect('login') 
+        else:
+            messages.error(request, 'Registration failed. Please check the errors below.')
+    else:
+        form = CustomUserCreationForm()
+        
+    return render(request, 'register.html', {'form': form, 'title': 'Register'})
+
+@login_required 
+def profile(request):
+    """
+    View function to display the user profile and allow email updates.
+    Ensures only authenticated users can access the view.
+    """
+    if request.method == 'POST':
+        new_email = request.POST.get('email')
+        
+        if new_email:
+            # Check if email is already in use by another user (excluding the current user)
+            if User.objects.filter(email=new_email).exclude(pk=request.user.pk).exists():
+                messages.error(request, 'That email is already registered to another user.')
+            else:
+                request.user.email = new_email
+                request.user.save()
+                messages.success(request, 'Your profile has been updated successfully!')
+        else:
+            messages.error(request, 'Email field cannot be empty.')
+            
+    # Render the profile page with the current user's context
+    return render(request, 'profile.html', {'user': request.user, 'title': 'Profile'})
