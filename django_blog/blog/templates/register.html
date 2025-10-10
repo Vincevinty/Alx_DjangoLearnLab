@@ -1,65 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Django Blog</title>
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        /* Consistent styling for input fields */
-        input[type="text"], input[type="email"], input[type="password"] {
-            @apply appearance-none block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm;
-        }
-    </style>
-</head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-lg bg-white p-8 rounded-xl shadow-2xl">
-        <h2 class="text-3xl font-extrabold text-gray-900 mb-6 text-center">Create Account</h2>
-        
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-2xl">
+        <h2 class="text-3xl font-extrabold text-gray-900 text-center mb-6">Create Account</h2>
+        <p class="text-center text-gray-500 mb-8">Sign up to join the blog community.</p>
+
         <form method="post" class="space-y-6">
-            <!-- Security essential: CSRF token -->
             {% csrf_token %}
             
-            <!-- Render non-field errors (e.g., password mismatch) -->
+            <!-- Hidden error message for non-field errors (e.g., password mismatch) -->
             {% if form.non_field_errors %}
-                <div class="p-4 bg-red-100 text-red-700 rounded-lg mb-4">
-                    {{ form.non_field_errors.as_text }}
+                <div class="p-3 text-sm rounded-lg bg-red-100 text-red-700 font-medium">
+                    {{ form.non_field_errors }}
                 </div>
             {% endif %}
-
-            <!-- Loop through the fields (username, email, password, password confirmation) -->
+            
+            <!-- Loop through form fields for rendering (includes username, email, password, password2) -->
             {% for field in form %}
-                <div class="space-y-2">
-                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+                <div class="space-y-1">
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ field.label }}
+                    </label>
                     {{ field }}
-                    {% if field.help_text %}
-                        <p class="text-xs text-gray-500">{{ field.help_text }}</p>
-                    {% endif %}
-                    <!-- Display field-specific errors (e.g., email uniqueness, password complexity) -->
-                    {% if field.errors %}
-                        <p class="mt-2 text-sm text-red-600 font-medium">{{ field.errors.as_text }}</p>
-                    {% endif %}
+                    
+                    <!-- Display field-specific errors (e.g., email exists, password requirements) -->
+                    {% for error in field.errors %}
+                        <p class="mt-1 text-xs text-red-600 italic font-semibold">{{ error }}</p>
+                    {% endfor %}
                 </div>
             {% endfor %}
-            
-            <div class="pt-4">
-                <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
-                    Register
-                </button>
-            </div>
+
+            <!-- Custom styling for form fields to match login.html -->
+            <style>
+                input[type="text"], input[type="email"], input[type="password"] {
+                    appearance: none;
+                    -webkit-appearance: none;
+                    @apply w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150;
+                }
+            </style>
+
+            <button type="submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150">
+                Register
+            </button>
         </form>
 
-        <div class="mt-6 text-center">
-            <p class="text-sm text-gray-600">
-                Already have an account?
-                <a href="{% url 'login' %}" class="font-medium text-indigo-600 hover:text-indigo-500">
-                    Sign In
-                </a>
-            </p>
-        </div>
+        <p class="mt-8 text-center text-sm text-gray-600">
+            Already have an account?
+            <a href="{% url 'login' %}" class="font-medium text-indigo-600 hover:text-indigo-500 transition duration-150">
+                Log In
+            </a>
+        </p>
     </div>
-</body>
-</html>
+</div>
+{% endblock content %}
