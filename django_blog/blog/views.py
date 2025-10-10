@@ -1,65 +1,68 @@
 from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from .forms import CustomUserCreationForm
 
-# --- Blog Content Views ---
-
+# --- Placeholder View for Main Blog Content ---
 def post_list(request):
     """
-    Placeholder for the main blog list view.
-    This view handles the root path ('/').
+    Placeholder view for the main blog page (the root URL).
+    This view will eventually list all blog posts.
     """
     context = {
-        'posts': [
-            {'title': 'Welcome to Django Blog', 'author': 'Awonke', 'date': '2025-10-10'},
-            {'title': 'Setting up Authentication', 'author': 'User', 'date': '2025-10-12'}
-        ],
-        'title': 'Blog Home'
+        'title': 'Welcome to the Django Blog',
+        'is_authenticated': request.user.is_authenticated,
+        'username': request.user.username if request.user.is_authenticated else 'Guest'
     }
+    # NOTE: You will need to create 'blog/templates/post_list.html' later.
     return render(request, 'post_list.html', context)
 
 # --- Authentication Views ---
 
 def register(request):
     """
-    View function to handle user registration using the CustomUserCreationForm.
-    Redirects to the login page on successful registration.
+    View function to handle user registration.
+    Uses the CustomUserCreationForm (from blog/forms.py).
     """
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            # Save the new user, email uniqueness is checked in forms.py
-            user = form.save()
-            messages.success(request, f'Account created for {user.username}! Please log in.')
-            return redirect('login') 
-        else:
-            messages.error(request, 'Registration failed. Please check the errors below.')
+            form.save()
+            messages.success(request, f'Account created for {form.cleaned_data.get("username")}! You can now log in.')
+            return redirect('login')
     else:
         form = CustomUserCreationForm()
-        
-    return render(request, 'register.html', {'form': form, 'title': 'Register'})
+    
+    return render(request, 'register.html', {'form': form})
 
-@login_required 
+@login_required
 def profile(request):
     """
-    View function to display the user profile and allow email updates.
-    Ensures only authenticated users can access the view.
+    View function to display and manage the user profile.
+    Handles POST request to update the user's email address.
     """
+    # Handles form submission to update the user's email
     if request.method == 'POST':
-        new_email = request.POST.get('email')
-        
-        if new_email:
-            # Check if email is already in use by another user (excluding the current user)
+        # Safely retrieve the new email from the POST data
+        new_email = request.POST.get('email', '').strip()
+
+        if new_email and new_email != request.user.email:
+            # Check if the new email already exists (excluding the current user's email)
             if User.objects.filter(email=new_email).exclude(pk=request.user.pk).exists():
-                messages.error(request, 'That email is already registered to another user.')
+                messages.error(request, 'This email is already associated with another account.')
             else:
+                # Update and save the user object
                 request.user.email = new_email
                 request.user.save()
-                messages.success(request, 'Your profile has been updated successfully!')
+                messages.success(request, 'Your email address has been successfully updated.')
+        elif new_email == request.user.email:
+             messages.info(request, 'No changes were made to your email address.')
         else:
-            messages.error(request, 'Email field cannot be empty.')
-            
-    # Render the profile page with the current user's context
-    return render(request, 'profile.html', {'user': request.user, 'title': 'Profile'})
+             messages.error(request, 'The email field cannot be empty.')
+             
+        # Redirect back to the profile page (GET request) to prevent form resubmission
+        return redirect('profile')
+
+    # Handles initial page load (GET request)
+    return render(request, 'profile.html', {'user': request.user})
