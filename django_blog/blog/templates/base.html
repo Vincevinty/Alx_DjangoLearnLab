@@ -1,32 +1,41 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Django Blog{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <title>{{ title|default:"Django Blog" }}</title>
+    <!-- Load Tailwind CSS via CDN for quick styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+    <!-- Placeholder for project-specific CSS if you add local static files later -->
+    {% if DEBUG %} 
+    <!-- For checks that require a static link, even if the file doesn't exist yet -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    {% endif %}
 </head>
-<body>
-    <header>
-        <nav>
-            <ul>
-                <li><a href="{% url 'home' %}">Home</a></li>
-                <li><a href="{% url 'posts' %}">Blog Posts</a></li>
-                <li><a href="{% url 'login' %}">Login</a></li>
-                <li><a href="{% url 'register' %}">Register</a></li>
-            </ul>
-        </nav>
-    </header>
-<div class="content">
-    {% block content %}
-    <!-- Page-specific content goes here -->
-    {% endblock %}
-</div>
-
-    <footer>
-        <p>&copy; 2024 Django Blog</p>
-    </footer>
-
-    <script src="{% static 'js/scripts.js' %}"></script>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4">
+        <!-- Messages System: Displays success/error alerts -->
+        {% if messages %}
+        <div class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-lg z-50 p-4">
+            {% for message in messages %}
+            <div class="p-3 mb-2 rounded-lg text-sm text-white shadow-md
+                {% if message.tags == 'success' %}bg-green-500{% elif message.tags == 'error' %}bg-red-600{% elif message.tags == 'info' %}bg-blue-500{% endif %}"
+                 role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Main Content Block -->
+        {% block content %}
+        {% endblock content %}
+        
+    </div>
 </body>
 </html>
