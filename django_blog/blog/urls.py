@@ -1,11 +1,7 @@
 from django.urls import path
-from . import views
-
-# Define the namespace for the blog app. This is used when linking (e.g., {% url 'blog:post_list' %})
-app_name = 'blog'
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-    # The root path of the site, handled by the blog app.
-    # This URL matches the empty string ('') because it's included at the project root level.
-    path('', views.post_list, name='post_list'),
+    path('login/', auth_views.LoginView.as_view(template_name='blog/login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(template_name='blog/logout.html'), name='logout'),
 ]
