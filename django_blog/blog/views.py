@@ -19,3 +19,6 @@ def profile_view(request):
         request.user.email = request.POST.get('email')
         request.user.save()
     return render(request, 'blog/profile.html', {'user': request.user})
+
+def home_view(request):
+    return render(request, 'blog/home.html')
