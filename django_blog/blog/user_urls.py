@@ -5,8 +5,8 @@ from django.contrib.auth import views as auth_views
 # This file handles all URLs prefixed with 'users/' 
 urlpatterns = [
     # Custom views defined in blog/views.py
-    path('register/', views.register, name='register'),
-    path('profile/', views.profile, name='profile'),
+    path('register/', views.register_view, name='register'),
+    path('profile/', views.profile_view, name='profile'),
     
     # Built-in Django authentication views (Login/Logout)
     # The 'login' name is used by default by Django's auth system for redirects
