@@ -1,33 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logged Out - Django Blog</title>
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-    </style>
-</head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-2xl text-center">
-        <h2 class="text-3xl font-extrabold text-gray-900 mb-4">You have been logged out!</h2>
-        
-        <p class="text-gray-600 mb-6">Thank you for visiting. Your session has ended securely.</p>
-        
-        <div class="mt-6 space-y-3">
-            <a href="{% url 'login' %}" class="inline-flex justify-center py-3 px-6 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150">
-                Log In Again
-            </a>
-            
-            <p class="text-sm text-gray-500">or</p>
-            
-            <a href="{% url 'blog:post_list' %}" class="text-sm font-medium text-gray-600 hover:text-gray-800 transition duration-150">
-                Continue browsing the site
-            </a>
-        </div>
-    </div>
-</body>
-</html>
+{% extends 'blog/base.html' %}
+{% block content %}
+<h2>You have been logged out.</h2>
+<a href="{% url 'login' %}">Login again</a>
+{% endblock %}
