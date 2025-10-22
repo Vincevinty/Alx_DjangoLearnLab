@@ -1,84 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile - Django Blog</title>
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        /* Consistent styling for input fields */
-        input[type="email"] {
-            @apply appearance-none block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm;
-        }
-    </style>
-</head>
-<body class="bg-gray-100 min-h-screen p-4">
-
-    <!-- Header / Navigation Placeholder -->
-    <header class="w-full bg-white shadow-md mb-8">
-        <div class="max-w-4xl mx-auto p-4 flex justify-between items-center">
-            <a href="{% url 'blog:post_list' %}" class="text-xl font-bold text-gray-800">My Blog</a>
-            <nav>
-                <!-- Links to your authentication paths defined in blog/user_urls.py -->
-                <a href="{% url 'logout' %}" class="text-sm font-medium text-red-600 hover:text-red-800 transition duration-150">Logout</a>
-            </nav>
-        </div>
-    </header>
-
-    <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-2xl">
-        <h1 class="text-3xl font-extrabold text-gray-900 mb-6 border-b pb-3">
-            {{ user.username }}'s Profile
-        </h1>
-        
-        <!-- Display success/error messages after form submission -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="p-4 mb-4 text-sm rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        <div class="space-y-6">
-            <h3 class="text-xl font-semibold text-gray-700">Account Details</h3>
-            
-            <div class="border-t border-gray-200 pt-4">
-                <dl class="space-y-4">
-                    <div class="grid grid-cols-3 gap-4">
-                        <dt class="text-sm font-medium text-gray-500">Username</dt>
-                        <dd class="text-sm text-gray-900 col-span-2">{{ user.username }}</dd>
-                    </div>
-                    <div class="grid grid-cols-3 gap-4">
-                        <dt class="text-sm font-medium text-gray-500">Joined</dt>
-                        <dd class="text-sm text-gray-900 col-span-2">{{ user.date_joined|date:"F j, Y" }}</dd>
-                    </div>
-                    <div class="grid grid-cols-3 gap-4">
-                        <dt class="text-sm font-medium text-gray-500">Email (Current)</dt>
-                        <dd class="text-sm text-gray-900 col-span-2">{{ user.email }}</dd>
-                    </div>
-                </dl>
-            </div>
-            
-            <h3 class="text-xl font-semibold text-gray-700 pt-4 border-t">Update Information</h3>
-            
-            <!-- Form for updating profile (email) -->
-            <form method="post" class="space-y-4">
-                {% csrf_token %}
-                
-                <div class="space-y-2">
-                    <label for="id_email" class="block text-sm font-medium text-gray-700">New Email Address</label>
-                    <!-- Pre-populating the field with the current email address -->
-                    <input type="email" id="id_email" name="email" value="{{ user.email|default:'' }}" required>
-                </div>
-
-                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150">
-                    Update Profile
-                </button>
-            </form>
-        </div>
-    </div>
-</body>
-</html>
+{% extends 'blog/base.html' %}
+{% block content %}
+<h2>Profile</h2>
+<form method="post">
+  {% csrf_token %}
+  <label>Email:</label>
+  <input type="email" name="email" value="{{ user.email }}">
+  <button type="submit">Update</button>
+</form>
+{% endblock %}
