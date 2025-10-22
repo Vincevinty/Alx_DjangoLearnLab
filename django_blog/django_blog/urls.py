@@ -16,8 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.shortcuts import redirect
+from django.contrib.auth import views as auth_views
+from blog import views
+
+
 
 urlpatterns = [
+    path('', lambda request: redirect('login')),
     # Admin site paths
     path('admin/', admin.site.urls),
 
@@ -26,5 +32,10 @@ urlpatterns = [
 
     # 2. User Authentication URLs: Handles paths under '/users/'
     # This includes the separate user_urls file within the blog app.
+    path('users/', include('blog.user_urls')),
+    path('login/', auth_views.LoginView.as_view(template_name='blog/login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(template_name='blog/logout.html'), name='logout'),
+    path('register/', views.register_view, name='register'),
+    path('profile/', views.profile_view, name='profile'),
     path('users/', include('blog.user_urls')),
 ]
